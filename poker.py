@@ -1,3 +1,4 @@
+from collections import Counter
 class Card:
 	def __init__(self, c):
 		self.c = c
@@ -37,6 +38,7 @@ class Hand:
 		else:
 			
 			suites = []
+			vals = []
 			for x in self.strArr:
 				y = Card(x)
 				self.cards.append(y)
@@ -46,6 +48,7 @@ class Hand:
 			#check for flush
 			#get number of suites
 			for x in self.cards:
+				vals.append(x.val)
 				if(suites.count(x.suit) == 0):
 					suites.append(x.suit)
 			#if number of suites only 1, has to be one of the flush hands
@@ -66,11 +69,62 @@ class Hand:
 						self.type = 2 #Straight Flush
 				else:
 					self.type = 5 #Standard Flush
-			
+				self.high = self.cards[4].val
+				
 			if(isStraight == 1):
 				self.type = 6 #Standard Straight
 				
 			##TODO##
+			
+			
+			count = Counter(vals)
+			print(list(count))
+			numPairs = 0;
+			numTris = 0;
+			for element in list(count):
+				if(count.get(element) == 4):
+					self.type = 3 #4 of a kind
+					self.high = count.get(element)
+					break #end early, total cards is 5
+				elif(count.get(element) == 3):
+					if(numPairs != 0): #came across a pair or 3oak
+						self.type = 4 #full house
+						self.high = count.get(element)
+						numPairs = 0;
+						break
+					else:
+						numTris = count.get(element)
+						continue
+					#3 of a kind OR Full house
+				elif(count.get(element) == 2):
+					if(numPairs != 0):
+						self.type = 8 #Two Pair
+						self.high = max(count.get(element), numPairs)
+						numPairs = 0
+						break
+					elif(numTris != 0):
+						self.type = 4 #Full House
+						self.high = numTris
+						numTris = 0
+						break
+					else:
+						numPairs = count.get(element)
+						continue
+					#One pair OR two pair
+				else:
+					continue
+					#move on in loop
+					
+			if(numPairs > 0):
+				self.type = 9 #One pair
+				self.high = numPairs
+			elif(numTris > 0):
+				self.type = 7 #3 of a kind
+				self.high = numTris
+			else:
+				self.type = 10 #High card
+				self.high = self.cards[4].val
+			
 
 if __name__ == '__main__' :
 	x = Hand("4D 6S 9H QH QC")
